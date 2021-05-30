@@ -1,31 +1,85 @@
 // import '../css/style.css'
 
+//import * as THREE from './three';
 import * as THREE from 'https://cdn.skypack.dev/three@0.129.0';
-
+function main(){
+const renderer = new THREE.WebGLRenderer({
+    canvas: document.querySelector("#bg"),
+  });
 const scene = new THREE.Scene();
+{
+  //adding a lighting source
+const color = 0xFFFFFF;
+const intensity = 1;
+const light = new THREE.DirectionalLight(color, intensity);
+light.position.set(-1, 2, 4);
+scene.add(light)
+}
 //this is the perspective camera
 //PerspectiveCamera(FieldOfView, Aspect Ratio, near clip, far clip)
 //near and far clip means that objects closer or farther from these wont be rendered.
-const camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 10 );
+const fov = 75;
+const aspect = 2;
+const near = 0.1;
+const far = 5;
+const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
+camera.position.z = 2;
 
-const renderer = new THREE.WebGLRenderer({
-  canvas: document.querySelector("#bg"),
-});
-renderer.setSize( window.innerWidth, window.innerHeight );
 
-const geometry = new THREE.BoxGeometry();
-const material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
-const cube = new THREE.Mesh( geometry, material );
-scene.add( cube );
 
-camera.position.z = 5;
-const animate = function () {
-    requestAnimationFrame( animate );
 
-    cube.rotation.x += 0.01;
-    cube.rotation.y += 0.01;
+const boxWidth = 1;
+const boxHeight = 1;
+const boxDepth = 1;
+const geometry = new THREE.BoxGeometry(boxWidth, boxHeight, boxDepth);
 
+function resizeRendererToDisplaySize(renderer) {
+  const canvas = renderer.domElement;
+  const width = canvas.clientWidth;
+  const height = canvas.clientHeight;
+  const needResize = canvas.width !== width || canvas.height !== height;
+  if (needResize) {
+    renderer.setSize(width, height, false);
+  }
+  return needResize;
+}
+
+function makeInstance(Geometry, color, x){
+  const material = new THREE.MeshPhongMaterial({color});
+  const cube = new THREE.Mesh(Geometry,material);
+  scene.add(cube);
+  cube.position.x = x;
+  return cube;
+}
+
+const cubes = [
+  makeInstance(geometry, 0x44aa88, 0),
+  makeInstance(geometry, 0x8844aa, 2),
+  makeInstance(geometry, 0xaa8844, -2),
+]
+
+
+
+
+
+const render = function (time) {
+  time *= 0.001; //convert time to seconds
+  if (resizeRendererToDisplaySize(renderer)) {
+    const canvas = renderer.domElement;
+    camera.aspect = canvas.clientWidth / canvas.clientHeight;
+    camera.updateProjectionMatrix();
+  }
+
+    cubes.forEach((cube, ndx)=>{
+      const speed = 1 + ndx * .1;
+      const rot = time * speed;
+      cube.rotation.x = rot;
+      cube.rotation.y = rot;
+    })
     renderer.render( scene, camera );
-  };
+    requestAnimationFrame(render);
+  }
 
-  animate();
+  requestAnimationFrame(render);
+}
+main();
